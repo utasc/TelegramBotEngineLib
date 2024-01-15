@@ -1,5 +1,6 @@
 ﻿
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace TelegramBotEngineLib
 {
@@ -17,7 +18,7 @@ namespace TelegramBotEngineLib
         int getUpdatesoffset=0;
         public void GetUpdate()
         {
-            Send("getUpdates",new { update_id = getUpdatesoffset});
+            Send("getUpdates",new { offset = getUpdatesoffset});            
         }
         
         public void Send(string METHOD_NAME,object? pairData =null){
@@ -50,7 +51,7 @@ namespace TelegramBotEngineLib
                 }
                 else
                 {
-                    Console.WriteLine($"Помилка: {response.StatusCode}");
+                    Console.WriteLine($"Помилка HttpClient: {response.StatusCode}");
                 }
             }
         }
@@ -59,10 +60,28 @@ namespace TelegramBotEngineLib
             Console.WriteLine($"Помилка: {ex.Message}");
         }
     }
-        static void ProcessResult(string result)
-    {
-        // Функція для обробки отриманого результату
-        Console.WriteLine($"Отриманий результат: {result}");
+         void ProcessResult(string result)
+    {            // Функція для обробки отриманого результату
+            Console.WriteLine($"Отриманий результат: {result}");
+            JObject json = JObject.Parse(result);
+            if((bool?)(json?["ok"])== true)
+            {
+                if(json.ContainsKey("result"))
+                {        
+                    if(json["result"] is JArray){
+                        // Отримання значення "result"
+                        JArray resultArray = (JArray)json["result"];
+                        // Отримання об'єкта "result" (перший елемент у масиві)
+                        if(resultArray.Count>0){
+                            JObject resultObject = (JObject)resultArray[0];
+                            if (resultObject.ContainsKey("update_id"))
+                            getUpdatesoffset = (int)(resultObject["update_id"])+1;
+                        }
+                    }else{
+
+                    }
+                }
+            }
     }
     }
 }
