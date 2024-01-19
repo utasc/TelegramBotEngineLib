@@ -6,10 +6,12 @@ namespace TelegramBotEngineLib
 
     public class MsgEventArgs
     {
-        public MsgEventArgs(JToken msg )
+        public MsgEventArgs( TelegramBot bot,JToken msg )
         {
+            Bot=bot;
             MassageJToken = msg;
         }
+        public TelegramBot Bot;
 
         public JToken MassageJToken { get;private set; }
 
