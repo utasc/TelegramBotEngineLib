@@ -16,17 +16,17 @@ namespace TelegramBotEngineLib
             if(pairData!=null)
             {
                 JObject jToken = JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(pairData));
-                if(jToken.ContainsKey("json_in_console"))
+                if(jToken.ContainsKey("json_in_terminal"))
                 {
-                    var q =(bool)jToken["json_in_console"];
-                    if((bool)jToken["json_in_console"])
-                    json_in_console=true;
+                    var q =(bool)jToken["json_in_terminal"];
+                    if((bool)jToken["json_in_terminal"])
+                    json_in_terminal=true;
                 }
             }
            Send("getMe");
         }
         #region flags
-        bool json_in_console=false;
+        bool json_in_terminal=false;
         #endregion
         public  readonly HttpClient client = new HttpClient();
         long getUpdatesoffset=0;
@@ -59,7 +59,7 @@ namespace TelegramBotEngineLib
                 {
                     // Отримати текст відповіді
                     string result = await response.Content.ReadAsStringAsync();
-                    if(json_in_console){Console.WriteLine(result);}
+                    if(json_in_terminal){Console.WriteLine(result);}
                     // Виклик функції для обробки результату
                     ProcessResult(result);
                 }
