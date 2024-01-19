@@ -2,6 +2,7 @@
 using System.Reflection.Metadata;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using TelegramBotEngineLib.Classes;
 
 namespace TelegramBotEngineLib
 {
@@ -11,9 +12,7 @@ namespace TelegramBotEngineLib
         public TelegramBot(string token)
         {
             _token=token;
-        Console.WriteLine("run post");
            Send("getMe");
-        Console.WriteLine("posted");
         }
         public  readonly HttpClient client = new HttpClient();
         long getUpdatesoffset=0;
@@ -61,6 +60,12 @@ namespace TelegramBotEngineLib
             Console.WriteLine($"Помилка: {ex.Message}");
         }
     }
+        private void _msg(JToken msg)
+        {
+            onMassageReceive?.Invoke(this, new MsgEventArgs(msg));
+        }
+        public event EventHandler<MsgEventArgs> onMassageReceive;            
+
         void ProcessResult(string result)
         {            // Функція для обробки отриманого результату
            // Console.WriteLine($"Отриманий результат: {result}");
@@ -82,10 +87,7 @@ namespace TelegramBotEngineLib
                             JToken messageToken = j.SelectToken("message");
                             if (messageToken != null)
                             {
-                                // "message" містить значення - присвоюємо його змінній
-                                string message = messageToken.ToString();
-                                // Вивід для перевірки
-                                Console.WriteLine($"Знайдено повідомлення: {message}");
+                                _msg(messageToken);
                             }
                         }
                     }else{
