@@ -9,11 +9,25 @@ namespace TelegramBotEngineLib
     public class TelegramBot
     {
         string _token;
-        public TelegramBot(string token)
+        public TelegramBot(string token, object? pairData =null)
         {
             _token=token;
+
+            if(pairData!=null)
+            {
+                JObject jToken = JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(pairData));
+                if(jToken.ContainsKey("json_in_console"))
+                {
+                    var q =(bool)jToken["json_in_console"];
+                    if((bool)jToken["json_in_console"])
+                    json_in_console=true;
+                }
+            }
            Send("getMe");
         }
+        #region flags
+        bool json_in_console=false;
+        #endregion
         public  readonly HttpClient client = new HttpClient();
         long getUpdatesoffset=0;
         public void GetUpdate()
@@ -45,7 +59,7 @@ namespace TelegramBotEngineLib
                 {
                     // Отримати текст відповіді
                     string result = await response.Content.ReadAsStringAsync();
-
+                    if(json_in_console){Console.WriteLine(result);}
                     // Виклик функції для обробки результату
                     ProcessResult(result);
                 }
@@ -62,7 +76,7 @@ namespace TelegramBotEngineLib
     }
         private void _msg(JToken msg)
         {
-            onMassageReceive?.Invoke(this, new MsgEventArgs(msg));
+            onMassageReceive?.Invoke(this, new MsgEventArgs(this,msg));
         }
         public event EventHandler<MsgEventArgs> onMassageReceive;            
 
