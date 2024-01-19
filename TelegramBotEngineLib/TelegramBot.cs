@@ -1,4 +1,5 @@
 ﻿
+using System.Reflection.Metadata;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -15,7 +16,7 @@ namespace TelegramBotEngineLib
         Console.WriteLine("posted");
         }
         public  readonly HttpClient client = new HttpClient();
-        int getUpdatesoffset=0;
+        long getUpdatesoffset=0;
         public void GetUpdate()
         {
             Send("getUpdates",new { offset = getUpdatesoffset});            
@@ -60,9 +61,9 @@ namespace TelegramBotEngineLib
             Console.WriteLine($"Помилка: {ex.Message}");
         }
     }
-         void ProcessResult(string result)
-    {            // Функція для обробки отриманого результату
-            Console.WriteLine($"Отриманий результат: {result}");
+        void ProcessResult(string result)
+        {            // Функція для обробки отриманого результату
+           // Console.WriteLine($"Отриманий результат: {result}");
             JObject json = JObject.Parse(result);
             if((bool?)(json?["ok"])== true)
             {
@@ -72,16 +73,29 @@ namespace TelegramBotEngineLib
                         // Отримання значення "result"
                         JArray resultArray = (JArray)json["result"];
                         // Отримання об'єкта "result" (перший елемент у масиві)
-                        if(resultArray.Count>0){
-                            JObject resultObject = (JObject)resultArray[0];
-                            if (resultObject.ContainsKey("update_id"))
-                            getUpdatesoffset = (int)(resultObject["update_id"])+1;
+                        foreach(JToken j in resultArray)
+                        {
+                            if (j is JObject jObject && jObject.TryGetValue("update_id", out JToken updateIdToken))
+                            {
+                                getUpdatesoffset = updateIdToken.Value<long>()+1;
+                            }
+                            JToken messageToken = j.SelectToken("message");
+                            if (messageToken != null)
+                            {
+                                // "message" містить значення - присвоюємо його змінній
+                                string message = messageToken.ToString();
+                                // Вивід для перевірки
+                                Console.WriteLine($"Знайдено повідомлення: {message}");
+                            }
                         }
                     }else{
+                        //Якщо не масив
 
+                        JObject resultArray = (JObject)json["result"];
+                        //{"id":6028827229,"is_bot":true,"first_name":"Test_bot","username":"utasc_test_bot","can_join_groups":true,"can_read_all_group_messages":false,"supports_inline_queries":false}
                     }
                 }
             }
-    }
+        }
     }
 }
