@@ -3,7 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.1.3</Version>
+    <Authors>utasc</Authors>
     <Nullable>enable</Nullable>
+    <Tags>telegram bot</Tags>
+    <Description>Бібліотека для підключення бота телеграму</Description>
+    <RepositoryURL>https://github.com/utasc/TelegramBotEngineLib</RepositoryURL>
   </PropertyGroup>
 
   <ItemGroup>
