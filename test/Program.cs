@@ -7,15 +7,17 @@ namespace test // Note: actual namespace depends on the project name.
     internal class Program
     {
         public static bool work=true;
-        static void Main(string[] args)
+        static async Task  Main(string[] args)
         {
-            var tb = new TelegramBot("6028827229:AAFqd7LI2kxE3ic7zyvsd2Qmqg59E9msXUg",new{json_in_console=true});
+            var tb = new TelegramBot("6028827229:AAFqd7LI2kxE3ic7zyvsd2Qmqg59E9msXUg",
+            new{
+                json_in_terminal=true,
+                auto_update=1000
+            });
             int i=0;
             tb.onMassageReceive+=readMsg;
-            while(i<10){
-                System.Threading.Thread.Sleep(5000);
-                tb.GetUpdate();
-            }
+
+            await Task.Delay(-1);
         }
 
         private static void readMsg(object? sender, MsgEventArgs e)
