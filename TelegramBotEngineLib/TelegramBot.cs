@@ -1,18 +1,15 @@
-﻿
-using System.Reflection.Metadata;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using TelegramBotEngineLib.Classes;
 
 namespace TelegramBotEngineLib
 {
     public class TelegramBot
     {
         string _token;
+        readonly HttpClient client = new HttpClient();
         public TelegramBot(string token, object? pairData =null)
         {
             _token=token;
-
             if(pairData!=null)
             {
                 JObject jToken = JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(pairData));
@@ -22,67 +19,85 @@ namespace TelegramBotEngineLib
                     if((bool)jToken["json_in_terminal"])
                     json_in_terminal=true;
                 }
+                if(jToken.ContainsKey("updates_offset"))
+                {
+                    var q =(int)jToken["updates_offset"];
+                    if(q>0)
+                    getUpdatesoffset=q;
+                }            
+                if(jToken.ContainsKey("auto_update"))
+                {
+                    int q =(int)jToken["auto_update"];
+                    if(q>0)
+                    {
+                        auto_update=q;
+                        autoupdate();
+                    }
+                }
             }
-           Send("getMe");
         }
         #region flags
         bool json_in_terminal=false;
-        #endregion
-        public  readonly HttpClient client = new HttpClient();
+        int auto_update=0;
         long getUpdatesoffset=0;
+        #endregion
+        
+        void autoupdate()
+        {
+            Thread newThread = new Thread(auto);
+            newThread.Start();
+        }
+        void auto()
+        {
+            System.Threading.Thread.Sleep(auto_update);
+            string postData = Newtonsoft.Json.JsonConvert.SerializeObject(new { offset = getUpdatesoffset});
+            StringContent content = new StringContent(postData, Encoding.UTF8, "application/json");
+            PostDataAsync("getUpdates",content,true);
+        }
         public void GetUpdate()
         {
-            Send("getUpdates",new { offset = getUpdatesoffset});            
+            Send("getUpdates",new { offset = getUpdatesoffset});
         }
+        public async void Send(string METHOD_NAME,object? pairData =null){
+            string postData = Newtonsoft.Json.JsonConvert.SerializeObject(pairData!=null?pairData:"{}");
+            StringContent content = new StringContent(postData, Encoding.UTF8, "application/json");
+            await PostDataAsync(METHOD_NAME,content);
+        }
+
         
-        public void Send(string METHOD_NAME,object? pairData =null){
-
-                string postData = Newtonsoft.Json.JsonConvert.SerializeObject(pairData!=null?pairData:"{}");
-
-                StringContent content = new StringContent(postData, Encoding.UTF8, "application/json");
-
-           _= PostDataAsync(METHOD_NAME,content);
-        }
-        async Task PostDataAsync(string METHOD_NAME,StringContent data)
-    {
-        try
+        async Task PostDataAsync(string METHOD_NAME,StringContent data,bool reDo=false)
         {
-            using (HttpClient client = new HttpClient())
+            try
             {
-
-                string apiUrl = "https://api.telegram.org/bot"+_token+"/"+METHOD_NAME;
-                // Виконати асинхронний POST-запит
-                HttpResponseMessage response = await client.PostAsync(apiUrl, data);//
-
-                // Перевірка статусу відповіді
-                if (response.IsSuccessStatusCode)
+                using (HttpClient httpClient = new HttpClient())
                 {
-                    // Отримати текст відповіді
-                    string result = await response.Content.ReadAsStringAsync();
-                    if(json_in_terminal){Console.WriteLine(result);}
-                    // Виклик функції для обробки результату
-                    ProcessResult(result);
-                }
-                else
-                {
-                    Console.WriteLine($"Помилка HttpClient: {response.StatusCode}");
+                    string apiUrl = "https://api.telegram.org/bot"+_token+"/"+METHOD_NAME;
+
+                    HttpResponseMessage response = await httpClient.PostAsync(apiUrl, data);
+                    // Обробка відповіді
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string result = await response.Content.ReadAsStringAsync();
+                        if(json_in_terminal)
+                        {Console.WriteLine(result);}
+                        ProcessResult(result);
+                    }
+                    else
+                    {
+                        Console.WriteLine("POST request failed. Status code: " + response.StatusCode);
+                    }
+                     auto();
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Помилка: {ex.Message}");
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Помилка: {ex.Message}");
-        }
-    }
-        private void _msg(JToken msg)
-        {
-            onMassageReceive?.Invoke(this, new MsgEventArgs(this,msg));
-        }
-        public event EventHandler<MsgEventArgs> onMassageReceive;            
-
         void ProcessResult(string result)
-        {            // Функція для обробки отриманого результату
-           // Console.WriteLine($"Отриманий результат: {result}");
+        {
+            // Функція для обробки отриманого результату
+            // Console.WriteLine($"Отриманий результат: {result}");
             JObject json = JObject.Parse(result);
             if((bool?)(json?["ok"])== true)
             {
@@ -113,5 +128,10 @@ namespace TelegramBotEngineLib
                 }
             }
         }
+        private void _msg(JToken msg)
+        {
+            onMassageReceive?.Invoke(this, new MsgEventArgs(this,msg));
+        }
+        public event EventHandler<MsgEventArgs> onMassageReceive;
     }
 }
