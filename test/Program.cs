@@ -15,7 +15,7 @@ namespace test // Note: actual namespace depends on the project name.
                 auto_update=1000
             });
             int i=0;
-            tb.onMassageReceive+=readMsg;
+            tb.onMessageReceive+=readMsg;
 
             await Task.Delay(-1);
         }
