@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.1.3</Version>
+    <Version>1.0.2</Version>
     <Authors>utasc</Authors>
     <Nullable>enable</Nullable>
     <Tags>telegram bot</Tags>
