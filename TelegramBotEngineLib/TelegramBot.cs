@@ -16,8 +16,12 @@ namespace TelegramBotEngineLib
                 if(jToken.ContainsKey("json_in_terminal"))
                 {
                     var q =(bool)jToken["json_in_terminal"];
-                    if((bool)jToken["json_in_terminal"])
-                    json_in_terminal=true;
+                    json_in_terminal=(bool)jToken["json_in_terminal"];
+                }
+                if(jToken.ContainsKey("ignore_empty_result"))
+                {
+                    var q =(bool)jToken["ignore_empty_result"];
+                    ignore_empty_result=(bool)jToken["ignore_empty_result"];
                 }
                 if(jToken.ContainsKey("updates_offset"))
                 {
@@ -38,6 +42,7 @@ namespace TelegramBotEngineLib
         }
         #region flags
         bool json_in_terminal=false;
+        bool ignore_empty_result=true;
         int auto_update=0;
         long getUpdatesoffset=0;
         #endregion
@@ -78,9 +83,14 @@ namespace TelegramBotEngineLib
                     if (response.IsSuccessStatusCode)
                     {
                         string result = await response.Content.ReadAsStringAsync();
-                        if(json_in_terminal)
-                        {Console.WriteLine(result);}
+                        if(ignore_empty_result &&result=="{\"ok\":true,\"result\":[]}")
+                        {
+                            
+                        }else{
+                        if(json_in_terminal)Console.WriteLine(result);
                         ProcessResult(result);
+
+                        }
                     }
                     else
                     {
@@ -130,8 +140,13 @@ namespace TelegramBotEngineLib
         }
         private void _msg(JToken msg)
         {
-            onMassageReceive?.Invoke(this, new MsgEventArgs(this,msg));
+            onMessageReceive?.Invoke(this, new MsgEventArgs(this,msg));
         }
-        public event EventHandler<MsgEventArgs> onMassageReceive;
+        public event EventHandler<MsgEventArgs> onMessageReceive;
+        private void _json(JToken msg)
+        {
+            onJsonReceive?.Invoke(this, new JsonEventArgs(this,msg));
+        }
+        public event EventHandler<JsonEventArgs> onJsonReceive;
     }
 }
