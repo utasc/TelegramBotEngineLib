@@ -7,7 +7,9 @@ namespace TelegramBotEngineLib
     {
         string _token;
         readonly HttpClient client = new HttpClient();
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public TelegramBot(string token, object? pairData =null)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _token=token;
             if(pairData!=null)
@@ -15,8 +17,9 @@ namespace TelegramBotEngineLib
                 JObject jToken = JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(pairData));
                 if(jToken.ContainsKey("json_in_terminal"))
                 {
+#pragma warning disable CS8604 // Possible null reference argument.
                     var q =(bool)jToken["json_in_terminal"];
-                    json_in_terminal=(bool)jToken["json_in_terminal"];
+                    json_in_terminal =(bool)jToken["json_in_terminal"];
                 }
                 if(jToken.ContainsKey("ignore_empty_result"))
                 {
@@ -38,6 +41,7 @@ namespace TelegramBotEngineLib
                         autoupdate();
                     }
                 }
+#pragma warning restore CS8604 // Possible null reference argument.
             }
         }
         #region flags
@@ -57,7 +61,7 @@ namespace TelegramBotEngineLib
             System.Threading.Thread.Sleep(auto_update);
             string postData = Newtonsoft.Json.JsonConvert.SerializeObject(new { offset = getUpdatesoffset});
             StringContent content = new StringContent(postData, Encoding.UTF8, "application/json");
-            PostDataAsync("getUpdates",content,true);
+            _ = PostDataAsync("getUpdates", content, true);
         }
         public void GetUpdate()
         {
@@ -115,24 +119,34 @@ namespace TelegramBotEngineLib
                 {        
                     if(json["result"] is JArray){
                         // Отримання значення "result"
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                         JArray resultArray = (JArray)json["result"];
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                         // Отримання об'єкта "result" (перший елемент у масиві)
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         foreach(JToken j in resultArray)
                         {
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                             if (j is JObject jObject && jObject.TryGetValue("update_id", out JToken updateIdToken))
                             {
                                 getUpdatesoffset = updateIdToken.Value<long>()+1;
                             }
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                             JToken messageToken = j.SelectToken("message");
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                             if (messageToken != null)
                             {
                                 _msg(messageToken);
                             }
                         }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                     }else{
                         //Якщо не масив
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                         JObject resultArray = (JObject)json["result"];
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                         //{"id":6028827229,"is_bot":true,"first_name":"Test_bot","username":"utasc_test_bot","can_join_groups":true,"can_read_all_group_messages":false,"supports_inline_queries":false}
                     }
                 }
